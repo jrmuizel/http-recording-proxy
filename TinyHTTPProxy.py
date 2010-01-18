@@ -13,7 +13,9 @@ Any help will be greatly appreciated.		SUZUKI Hisao
 
 __version__ = "0.2.1"
 
-import BaseHTTPServer, select, socket, SocketServer, urlparse
+record = False
+
+import BaseHTTPServer, select, socket, SocketServer, urlparse, urllib
 
 class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     __base = BaseHTTPServer.BaseHTTPRequestHandler
@@ -63,6 +65,15 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
         (scm, netloc, path, params, query, fragment) = urlparse.urlparse(
             self.path, 'http')
+	current_file_name = urllib.quote(self.path, "")[:250]
+	if record:
+		result = open("log/" + current_file_name, "r")
+		print urllib.quote(self.path, "")
+		self.connection.send(result.read())
+		self.connection.close()
+                self.log_request()
+		return
+	self.current_file = open("log/" + current_file_name, "w+")
         if scm != 'http' or fragment or not netloc:
             self.send_error(400, "bad url %s" % self.path)
             return
@@ -77,11 +88,13 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                 self.headers['Connection'] = 'close'
                 del self.headers['Proxy-Connection']
                 for key_val in self.headers.items():
-                    soc.send("%s: %s\r\n" % key_val)
+		    if key_val[0] != 'accept-encoding':
+                        soc.send("%s: %s\r\n" % key_val)
                 soc.send("\r\n")
                 self._read_write(soc)
         finally:
             print "\t" "bye"
+	    self.current_file.close()
             soc.close()
             self.connection.close()
 
@@ -100,6 +113,7 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                     else:
                         out = soc
                     data = i.recv(8192)
+		    self.current_file.write(data)
                     if data:
                         out.send(data)
                         count = 0
@@ -117,6 +131,7 @@ class ThreadingHTTPServer (SocketServer.ThreadingMixIn,
 
 if __name__ == '__main__':
     from sys import argv
+    record = True
     if argv[1:] and argv[1] in ('-h', '--help'):
         print argv[0], "[port [allowed_client_name ...]]"
     else:
@@ -130,4 +145,4 @@ if __name__ == '__main__':
             del argv[2:]
         else:
             print "Any clients will be served..."
-        BaseHTTPServer.test(ProxyHandler, ThreadingHTTPServer)
+	BaseHTTPServer.test(ProxyHandler, ThreadingHTTPServer)
