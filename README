@@ -1,0 +1,10 @@
+To run in record mode:
+
+./TinyHTTPProxy.py
+
+This will create a 'log' directoy in the current directory where the recording
+will be stored
+
+To run in replay mode:
+
+./TinyHTTPProxy.py --replay
