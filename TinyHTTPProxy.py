@@ -13,9 +13,10 @@ Any help will be greatly appreciated.		SUZUKI Hisao
 
 __version__ = "0.2.1"
 
-record = False
+replay = False
 
 import BaseHTTPServer, select, socket, SocketServer, urlparse, urllib
+import os
 
 class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     __base = BaseHTTPServer.BaseHTTPRequestHandler
@@ -66,7 +67,7 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         (scm, netloc, path, params, query, fragment) = urlparse.urlparse(
             self.path, 'http')
 	current_file_name = urllib.quote(self.path, "")[:250]
-	if record:
+	if replay:
 		result = open("log/" + current_file_name, "r")
 		print urllib.quote(self.path, "")
 		self.connection.send(result.read())
@@ -131,9 +132,12 @@ class ThreadingHTTPServer (SocketServer.ThreadingMixIn,
 
 if __name__ == '__main__':
     from sys import argv
-    record = True
-    if argv[1:] and argv[1] in ('-h', '--help'):
-        print argv[0], "[port [allowed_client_name ...]]"
+    os.mkdir('log')
+    if argv[1:]:
+	if argv[1] in ('-h', '--help'):
+	    print argv[0], "[port [allowed_client_name ...]]"
+	if argv[1] in ('--replay'):
+	    replay = True
     else:
         if argv[2:]:
             allowed = []
