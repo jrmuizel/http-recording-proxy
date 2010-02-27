@@ -132,21 +132,29 @@ class ThreadingHTTPServer (SocketServer.ThreadingMixIn,
 
 if __name__ == '__main__':
     from sys import argv
-    os.mkdir('log')
+    try:
+    	os.mkdir('log')
+    except:
+	pass
+
     if argv[1:]:
 	if argv[1] in ('-h', '--help'):
 	    print argv[0], "[port [allowed_client_name ...]]"
+	    sys.exit(1)
 	if argv[1] in ('--replay'):
 	    replay = True
+	    del argv[1]
+	    print "Replaying..."
+    if argv[2:]:
+	"""
+	allowed = []
+	for name in argv[2:]:
+	    client = socket.gethostbyname(name)
+	    allowed.append(client)
+	    print "Accept: %s (%s)" % (client, name)
+	ProxyHandler.allowed_clients = allowed
+	del argv[2:]
+"""
     else:
-        if argv[2:]:
-            allowed = []
-            for name in argv[2:]:
-                client = socket.gethostbyname(name)
-                allowed.append(client)
-                print "Accept: %s (%s)" % (client, name)
-            ProxyHandler.allowed_clients = allowed
-            del argv[2:]
-        else:
-            print "Any clients will be served..."
-	BaseHTTPServer.test(ProxyHandler, ThreadingHTTPServer)
+	print "Any clients will be served..."
+    BaseHTTPServer.test(ProxyHandler, ThreadingHTTPServer)
