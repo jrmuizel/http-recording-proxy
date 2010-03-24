@@ -86,10 +86,10 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 
         (scm, netloc, path, params, query, fragment) = urlparse.urlparse(
             self.path, 'http')
+        # chop the quoted path so that we don't over run any filesystem limits
 	current_file_name = urllib.quote(self.path, "")[:250]
 
 	current_file_name = substitute(current_file_name)
-
 	
 	if replay:
 		result = open("log/" + current_file_name, "r")
