@@ -63,10 +63,34 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             soc.close()
             self.connection.close()
 
+
     def do_GET(self):
+        # we use this function to remove insignificant parts of the url
+	def substitute(url):
+            substrs = []
+            # here's an example of some filtered urls
+            '''
+	    substrs = ['http%3A%2F%2Fby126w.bay126.mail.live.com%2Fmail%2FInboxLight.aspx%3FFolderID%3D00000000-0000-0000-0000-000000000001%26InboxSortAscending%3DFalse%26InboxSortBy%3DDate%26n%3D',
+		       'http%3A%2F%2Fby126w.bay126.mail.live.com%2Fmail%2Fmail.fpp%3Fcnmn%3DMicrosoft.Msn.Hotmail.Ui.Fpp.MailBox.GetInboxData%26a%3D',
+		       'http%3A%2F%2Fh.msn.com%2Fc.gif%3FRF%3D%26PI%3D44318%26DI%3D5692%26PS%3D9',
+		       'http%3A%2F%2Fb.rad.msn.com%2FADSAdClient31.dll%3FGetSAd%3D%26DPJS%3D4%26PN%3DMSFT%26ID%3D0A555474DA3B1282CFAFA6FAFFFFFFFF%26MUID%3Dd392f5886b2b4cbfba761ac3b08d8fb0%26AP%3D1',
+		       'http%3A%2F%2Fas.casalemedia.com%2Fj%3Fs%3D111152%26u%3D%26a%3D5%26id%3D',
+		       'http%3A%2F%2Fbellcan.adbureau.net%2Fjserver%2Fsite%3DENSYMP.wlm%2Farea%3Dmale.25to34%2Faamsz%3D']
+	    '''
+            for s in substrs:
+                # check if the url starts with 's'
+                if url.find(s) != -1:
+		    return s
+	    return url
+
+
         (scm, netloc, path, params, query, fragment) = urlparse.urlparse(
             self.path, 'http')
 	current_file_name = urllib.quote(self.path, "")[:250]
+
+	current_file_name = substitute(current_file_name)
+
+	
 	if replay:
 		result = open("log/" + current_file_name, "r")
 		print urllib.quote(self.path, "")
@@ -89,6 +113,7 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                 self.headers['Connection'] = 'close'
                 del self.headers['Proxy-Connection']
                 for key_val in self.headers.items():
+		    # ignore accept-encoding headers so that we don't get gziped data
 		    if key_val[0] != 'accept-encoding':
                         soc.send("%s: %s\r\n" % key_val)
                 soc.send("\r\n")
