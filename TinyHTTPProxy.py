@@ -18,6 +18,8 @@ replay = False
 import BaseHTTPServer, select, socket, SocketServer, urlparse, urllib
 import os
 
+prefix = "log"
+
 class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     __base = BaseHTTPServer.BaseHTTPRequestHandler
     __base_handle = __base.handle
@@ -92,13 +94,13 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 	current_file_name = substitute(current_file_name)
 	
 	if replay:
-		result = open("log/" + current_file_name, "r")
+		result = open(prefix + "/" + current_file_name, "r")
 		print urllib.quote(self.path, "")
 		self.connection.send(result.read())
 		self.connection.close()
                 self.log_request()
 		return
-	self.current_file = open("log/" + current_file_name, "w+")
+	self.current_file = open(prefix + "/" + current_file_name, "w+")
         if scm != 'http' or fragment or not netloc:
             self.send_error(400, "bad url %s" % self.path)
             return
@@ -158,7 +160,7 @@ class ThreadingHTTPServer (SocketServer.ThreadingMixIn,
 if __name__ == '__main__':
     from sys import argv
     try:
-    	os.mkdir('log')
+        os.mkdir(prefix)
     except:
 	pass
 
