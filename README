@@ -8,3 +8,6 @@ will be stored
 To run in replay mode:
 
 ./TinyHTTPProxy.py --replay
+
+See also:
+http://code.google.com/p/web-page-replay/
